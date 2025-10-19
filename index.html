@@ -3,32 +3,148 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#2563EB" />
+  <meta name="theme-color" content="#ffffff" />
   <title>TengeCalc — сколько выставить, чтобы получить чистыми</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <style>
-    /* Minimal, responsive styles */
-    :root{--bg:#f8fafc;--card:#ffffff;--accent:#2563EB;--muted:#6b7280}
-    html,body{height:100%;background:var(--bg);font-family:Inter,ui-sans-serif,system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;margin:0}
-    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
-    .card{width:100%;max-width:420px;background:var(--card);border-radius:16px;box-shadow:0 6px 24px rgba(15,23,42,0.08);padding:20px}
-    h1{font-size:18px;margin:0 0 8px}
-    p.lead{margin:0 0 16px;color:var(--muted);font-size:13px}
-    label{display:block;font-size:13px;color:#111827;margin-bottom:6px}
-    input[type=number],input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid #e6e9ef;font-size:16px}
-    .row{display:flex;gap:8px}
-    .btn{flex:1;padding:10px;border-radius:10px;border:1px solid #e6e9ef;background:white;font-weight:600}
-    .btn.active{background:var(--accent);color:white;border-color:transparent}
-    .result{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
-    .result .amount{font-weight:700;font-size:24px}
-    .small{font-size:12px;color:var(--muted)}
-    .actions{display:flex;gap:8px;margin-top:12px}
-    .copy{padding:8px 12px;border-radius:10px;border:none;background:#10b981;color:white;font-weight:700}
-    a.link{font-size:12px;color:var(--muted);text-decoration:underline}
-    footer{margin-top:14px;font-size:12px;color:var(--muted);text-align:center}
-    @media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#071129;--muted:#9CA3AF}}
+    /* Светлый минималистичный стиль */
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --accent:#2563EB;
+      --muted:#6b7280;
+    }
+
+    html,body{
+      height:100%;
+      background:var(--bg);
+      color:#111827;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      margin:0;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .card{
+      width:100%;
+      max-width:420px;
+      background:var(--card);
+      border-radius:16px;
+      box-shadow:0 0 0 1px rgba(0,0,0,0.05);
+      padding:20px;
+    }
+
+    h1{
+      font-size:18px;
+      margin:0 0 8px;
+    }
+
+    p.lead{
+      margin:0 0 16px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    label{
+      display:block;
+      font-size:13px;
+      color:#111827;
+      margin-bottom:6px;
+    }
+
+    input[type=number],input[type=text]{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #e6e9ef;
+      font-size:16px;
+      background:#ffffff;
+      color:#111827;
+    }
+
+    .row{
+      display:flex;
+      gap:8px;
+    }
+
+    .btn{
+      flex:1;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #e6e9ef;
+      background:white;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .btn.active{
+      background:var(--accent);
+      color:white;
+      border-color:transparent;
+    }
+
+    .result{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:16px;
+    }
+
+    .result .amount{
+      font-weight:700;
+      font-size:24px;
+    }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .copy{
+      padding:8px 12px;
+      border-radius:10px;
+      border:none;
+      background:#10b981;
+      color:white;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    a.link{
+      font-size:12px;
+      color:var(--muted);
+      text-decoration:underline;
+    }
+
+    footer{
+      margin-top:14px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    /* Убираем тёмную тему */
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#ffffff;
+        --card:#ffffff;
+        --muted:#6b7280;
+      }
+    }
   </style>
 </head>
 <body>
@@ -64,14 +180,15 @@
         </div>
       </div>
 
-      <div class="small" style="margin-top:12px">Пример: если хочешь получить <strong>540 000 тг</strong> чистыми и комиссия <strong>16%</strong>, то нужно выставить <strong>642 857 тг</strong>.</div>
+      <div class="small" style="margin-top:12px">
+        Пример: если хочешь получить <strong>540 000 тг</strong> чистыми и комиссия <strong>16%</strong>, то нужно выставить <strong>642 857 тг</strong>.
+      </div>
 
       <footer>Офлайн PWA — можно установить на домашний экран: меню → Добавить на экран (iPhone / Android).</footer>
     </div>
   </div>
 
   <script>
-    // Simple app logic
     (function(){
       const netEl = document.getElementById('net');
       const feeButtons = Array.from(document.querySelectorAll('.btn[data-fee]'));
@@ -102,7 +219,7 @@
             if(nf===16 || nf===19){ fee = nf; useCustom=false; customRow.style.display='none'; customFee.value=''; }
             else{ useCustom=true; customRow.style.display='block'; customFee.value = f; }
           }
-        }catch(e){/*ignore*/}
+        }catch(e){}
       }
 
       function compute(){
@@ -129,16 +246,13 @@
         }
       });
 
-      // init
       parseParams();
       setActiveButton(fee);
       compute();
 
-      // register service worker (if available)
       if('serviceWorker' in navigator){
         window.addEventListener('load', function(){
           navigator.serviceWorker.register('/service-worker.js').then(function(reg){
-            // registration worked
             console.log('SW registered', reg);
           }).catch(function(err){
             console.log('SW register failed', err);
