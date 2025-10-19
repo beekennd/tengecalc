@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#2563EB" />
+  <title>TengeCalc — сколько выставить, чтобы получить чистыми</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    /* Minimal, responsive styles */
+    :root{--bg:#f8fafc;--card:#ffffff;--accent:#2563EB;--muted:#6b7280}
+    html,body{height:100%;background:var(--bg);font-family:Inter,ui-sans-serif,system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;margin:0}
+    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{width:100%;max-width:420px;background:var(--card);border-radius:16px;box-shadow:0 6px 24px rgba(15,23,42,0.08);padding:20px}
+    h1{font-size:18px;margin:0 0 8px}
+    p.lead{margin:0 0 16px;color:var(--muted);font-size:13px}
+    label{display:block;font-size:13px;color:#111827;margin-bottom:6px}
+    input[type=number],input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid #e6e9ef;font-size:16px}
+    .row{display:flex;gap:8px}
+    .btn{flex:1;padding:10px;border-radius:10px;border:1px solid #e6e9ef;background:white;font-weight:600}
+    .btn.active{background:var(--accent);color:white;border-color:transparent}
+    .result{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+    .result .amount{font-weight:700;font-size:24px}
+    .small{font-size:12px;color:var(--muted)}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .copy{padding:8px 12px;border-radius:10px;border:none;background:#10b981;color:white;font-weight:700}
+    a.link{font-size:12px;color:var(--muted);text-decoration:underline}
+    footer{margin-top:14px;font-size:12px;color:var(--muted);text-align:center}
+    @media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#071129;--muted:#9CA3AF}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="application" aria-label="TengeCalc">
+      <h1>TengeCalc — получить чистыми</h1>
+      <p class="lead">Введи сумму, которую хочешь получить «на руки», укажи комиссию — калькулятор покажет цену продажи. Работает офлайн (PWA).</p>
+
+      <label for="net">Желаемая чистая сумма (тенге)</label>
+      <input id="net" type="number" inputmode="numeric" placeholder="540000" value="540000" />
+
+      <div style="height:12px"></div>
+      <label>Комиссия банка / %</label>
+      <div class="row" role="tablist">
+        <button class="btn" data-fee="16">16%</button>
+        <button class="btn" data-fee="19">19%</button>
+        <button class="btn" id="otherBtn">Другое</button>
+      </div>
+      <div id="customRow" style="display:none;margin-top:8px">
+        <input id="customFee" type="text" inputmode="decimal" placeholder="Введите процент, например 16 или 2.5" />
+      </div>
+
+      <div class="result" aria-live="polite">
+        <div>
+          <div class="small">Нужно выставить</div>
+          <div class="amount" id="gross">0 тг</div>
+          <div class="small" id="formula"></div>
+        </div>
+        <div style="text-align:right">
+          <button class="copy" id="copyBtn">Скопировать</button>
+          <div style="height:8px"></div>
+          <a id="linkParams" class="link" href="#">Ссылка с параметрами</a>
+        </div>
+      </div>
+
+      <div class="small" style="margin-top:12px">Пример: если хочешь получить <strong>540 000 тг</strong> чистыми и комиссия <strong>16%</strong>, то нужно выставить <strong>642 857 тг</strong>.</div>
+
+      <footer>Офлайн PWA — можно установить на домашний экран: меню → Добавить на экран (iPhone / Android).</footer>
+    </div>
+  </div>
+
+  <script>
+    // Simple app logic
+    (function(){
+      const netEl = document.getElementById('net');
+      const feeButtons = Array.from(document.querySelectorAll('.btn[data-fee]'));
+      const otherBtn = document.getElementById('otherBtn');
+      const customRow = document.getElementById('customRow');
+      const customFee = document.getElementById('customFee');
+      const grossEl = document.getElementById('gross');
+      const formulaEl = document.getElementById('formula');
+      const copyBtn = document.getElementById('copyBtn');
+      const linkParams = document.getElementById('linkParams');
+
+      let fee = 16;
+      let useCustom = false;
+
+      function setActiveButton(value){
+        feeButtons.forEach(b=>b.classList.toggle('active', Number(b.dataset.fee)===Number(value)));
+        otherBtn.classList.toggle('active', useCustom);
+      }
+
+      function parseParams(){
+        try{
+          const p = new URLSearchParams(location.search);
+          const n = p.get('net');
+          const f = p.get('fee');
+          if(n!==null && !isNaN(Number(n))){ netEl.value = Math.round(Number(n)); }
+          if(f!==null && !isNaN(Number(f))){
+            const nf = Number(f);
+            if(nf===16 || nf===19){ fee = nf; useCustom=false; customRow.style.display='none'; customFee.value=''; }
+            else{ useCustom=true; customRow.style.display='block'; customFee.value = f; }
+          }
+        }catch(e){/*ignore*/}
+      }
+
+      function compute(){
+        const net = Number(netEl.value) || 0;
+        const effectiveFee = useCustom ? Number(String(customFee.value).replace(',','.')) || 0 : fee;
+        if(net<=0 || effectiveFee>=100 || effectiveFee<0){ grossEl.textContent='—'; formulaEl.textContent=''; return; }
+        const gross = Math.round(net / (1 - effectiveFee/100));
+        grossEl.textContent = gross.toLocaleString('ru-RU') + ' тг';
+        formulaEl.textContent = `Формула: ${net.toLocaleString('ru-RU')} / (1 - ${effectiveFee}%)`;
+        linkParams.href = `?net=${encodeURIComponent(net)}&fee=${encodeURIComponent(effectiveFee)}`;
+      }
+
+      feeButtons.forEach(b=>b.addEventListener('click', ()=>{ useCustom=false; fee=Number(b.dataset.fee); customRow.style.display='none'; customFee.value=''; setActiveButton(fee); compute(); }));
+      otherBtn.addEventListener('click', ()=>{ useCustom=true; customRow.style.display='block'; setActiveButton(); compute(); customFee.focus(); });
+      netEl.addEventListener('input', compute);
+      customFee.addEventListener('input', ()=>{ compute(); });
+
+      copyBtn.addEventListener('click', async ()=>{
+        try{
+          await navigator.clipboard.writeText(grossEl.textContent || '');
+          alert('Скопировано: ' + (grossEl.textContent || ''));
+        }catch(e){
+          alert('Не удалось скопировать. Выделите и скопируйте вручную.');
+        }
+      });
+
+      // init
+      parseParams();
+      setActiveButton(fee);
+      compute();
+
+      // register service worker (if available)
+      if('serviceWorker' in navigator){
+        window.addEventListener('load', function(){
+          navigator.serviceWorker.register('/service-worker.js').then(function(reg){
+            // registration worked
+            console.log('SW registered', reg);
+          }).catch(function(err){
+            console.log('SW register failed', err);
+          });
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
